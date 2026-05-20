@@ -205,13 +205,26 @@ export class SecurityManager {
    * Utility to get features for a tenant
    */
   public async getTenantFeatures(tenantId: mongoose.Types.ObjectId): Promise<LicenseFeatures> {
-    const tenant = await Tenant.findById(tenantId);
-    if (!tenant || !tenant.licenseKey) {
+    try {
+      const tenant = await Tenant.findById(tenantId);
+      if (!tenant) {
+        console.warn(`[SECURITY] Tenant not found for ID: ${tenantId}`);
+        return { email: false, sms: false, aadhaar: false };
+      }
+      if (!tenant.licenseKey) {
+        console.warn(`[SECURITY] No license key found for tenant: ${tenant.name}`);
+        return { email: false, sms: false, aadhaar: false };
+      }
+
+      const result = await this.validateTenantLicense(tenant.licenseKey);
+      if (!result.valid) {
+        console.warn(`[SECURITY] Invalid license for tenant ${tenant.name}: ${result.reason}`);
+      }
+      return result.data?.features || { email: false, sms: false, aadhaar: false };
+    } catch (error: any) {
+      console.error(`[SECURITY] Error getting tenant features for ID ${tenantId}:`, error);
       return { email: false, sms: false, aadhaar: false };
     }
-
-    const result = await this.validateTenantLicense(tenant.licenseKey);
-    return result.data?.features || { email: false, sms: false, aadhaar: false };
   }
 }
 

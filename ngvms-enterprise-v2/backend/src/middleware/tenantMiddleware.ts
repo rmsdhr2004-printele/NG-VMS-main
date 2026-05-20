@@ -8,6 +8,25 @@ export const tenantMiddleware = async (req: Request, res: Response, next: NextFu
     return next();
   }
 
+  // Exempt routes that don't require a tenant context (e.g., bootstrap and health checks)
+  const exemptRoutes = ['/api/bootstrap', '/api/system/health', '/api/system/version', '/api/system/config', '/bootstrap', '/system/health', '/system/version', '/system/config'];
+  if (exemptRoutes.some(route => req.originalUrl.startsWith(route))) {
+    const subdomain = req.headers['x-tenant-id'] as string;
+    if (subdomain) {
+      try {
+        const tenant = await Tenant.findOne({ subdomain });
+        if (tenant) {
+          const tenantReq = req as TenantRequest;
+          tenantReq.tenant = tenant;
+          tenantReq.tenantId = tenant._id as mongoose.Types.ObjectId;
+        }
+      } catch (error) {
+        console.error('[TENANT MIDDLEWARE] Safe extract error:', error);
+      }
+    }
+    return next();
+  }
+
   const subdomain = req.headers['x-tenant-id'] as string;
 
   if (!subdomain) {
@@ -29,4 +48,4 @@ export const tenantMiddleware = async (req: Request, res: Response, next: NextFu
     console.error('[TENANT MIDDLEWARE] Error:', error);
     res.status(500).json({ error: 'Internal Server Error during tenant identification' });
   }
-};
+;

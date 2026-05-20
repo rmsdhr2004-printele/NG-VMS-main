@@ -76,13 +76,24 @@ export class SystemService {
   }
 
   static async getTenantConfig(tenant: any, tenantId: mongoose.Types.ObjectId) {
-    const features = await SecurityManager.getInstance().getTenantFeatures(tenantId);
-    return {
-      name: tenant.name,
-      logoUrl: tenant.logoUrl,
-      subdomain: tenant.subdomain,
-      features
-    };
+    try {
+      if (!tenant) {
+        throw new Error('Tenant object is null or undefined');
+      }
+      if (!tenant.name) {
+        throw new Error('Tenant name is missing');
+      }
+      const features = await SecurityManager.getInstance().getTenantFeatures(tenantId);
+      return {
+        name: tenant.name,
+        logoUrl: tenant.logoUrl || null,
+        subdomain: tenant.subdomain,
+        features
+      };
+    } catch (error: any) {
+      console.error('[SYSTEM SERVICE] getTenantConfig error:', error);
+      throw error;
+    }
   }
 
   static async uploadHosts(buffer: Buffer, tenantId: mongoose.Types.ObjectId) {

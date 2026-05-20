@@ -58,6 +58,7 @@ services:
       - mongo_data:/data/db
       - ./data/mongo/mongo.key:/data/configdb/mongo.key
     environment:
+      # Auth re-enabled
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
 

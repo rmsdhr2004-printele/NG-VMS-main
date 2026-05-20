@@ -9,7 +9,7 @@ export const tenantMiddleware = async (req: Request, res: Response, next: NextFu
   }
 
   // Exempt routes that don't require a tenant context (e.g., bootstrap and health checks)
-  const exemptRoutes = ['/api/bootstrap', '/api/system/health', '/api/system/version', '/bootstrap', '/system/health', '/system/version'];
+  const exemptRoutes = ['/api/bootstrap', '/api/system/health', '/api/system/version', '/api/system/config', '/bootstrap', '/system/health', '/system/version', '/system/config'];
   if (exemptRoutes.some(route => req.originalUrl.startsWith(route))) {
     const subdomain = req.headers['x-tenant-id'] as string;
     if (subdomain) {
